@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=412, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Personal Invitation</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: 'Times New Roman', Times, serif;
+            align-items: normal;
+        }
+
+        #background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            transition: background 1s ease-in-out;
+        }
+
+        #background.fade-to-black {
+            background: black;
+        }
+
+        video {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        video.show {
+            display: block;
+        }
+
+        #overlay1 {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60%;
+            height: 50%;
+   background-color: rgba(36, 35, 35, 0.007); /* Semi-transparent black */
+            border-radius: 0px; /* Rounded corners */
+            z-index: 2;
+            color: white;
+            opacity: 0;
+            animation: fadeIn 2s ease forwards;
+            padding: 10px;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        #overlay1.show {
+            display: block;
+        }
+
+        #text1 {
+            white-space: pre-wrap;
+            overflow-wrap: break-word;
+            overflow: hidden;
+            border-right: 2px solid white;
+            width: 100%;
+            height: auto;
+            font-size: 16px;
+            animation: typing 6s steps(40, end), blink 1s step-end infinite;
+        }
+
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+
+        @keyframes blink {
+            from { border-color: transparent; }
+            to { border-color: white; }
+        }
+
+        .fade-in {
+            opacity: 0;
+            animation: fadeIn 1s forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .fade-out {
+            animation: fadeOut 1s forwards;
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
+        .options {
+            margin-top: 20px;
+        }
+
+        #options1 button {
+            margin: 5px;
+            padding: 10px 20px;
+            border: none;
+            background-color: #0056b3;
+            color: white;
+            cursor: pointer;
+        }
+
+        #options1 button.selected {
+            background-color: #007BFF;
+        }
+
+        #options2 button {
+            margin: 5px;
+            padding: 10px 20px;
+            border: none;
+            background-color: #c64d2d;
+            color: white;
+            cursor: pointer;
+        }
+
+        #options2 button.selected {
+            background-color: #FF5733; 
+        }
+
+        textarea {
+            width: calc(100% - 40px);
+            height: 100px;
+            margin-top: 10px;
+            padding: 10px;
+            opacity: 0;
+            transition: opacity 1s;
+        }
+
+        textarea.visible {
+            opacity: 1;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="background"></div>
+    <video id="video" src="video.mp4" autoplay muted></video>
+    <div id="overlay1">
+        <div id="text1">I know this is a bit of an unusual way to do this, but my brain kind of short-circuited and this is what I came up with! 😅</div>
+        <div id="text2" class="fade-in hidden">So, here goes... are you free today?</div>
+        <div id="options1" class="options hidden">
+            <button id="option1">Yes</button>
+            <button id="option2">No</button>
+        </div>
+        <div id="text3" class="fade-in hidden">If you are free, how about we grab some lunch or dinner?</div>
+        <div id="options2" class="options hidden">
+            <button id="option3">Yes</button>
+            <button id="option4">NO</button>
+            <button id="option5">Some other time.</button>
+        </div>
+        <!-- New Textarea and Submit Button for Option2 -->
+        <div id="feedback1" class="hidden">
+            <textarea id="textarea1" placeholder="Enter your feedback..."></textarea>
+            <button id="submitFeedback1" class="hidden">Submit</button>
+        </div>
+
+        <!-- New Textarea and Submit Button for Option1 -->
+        <div id="feedback2" class="hidden">
+            <textarea id="textarea2" placeholder="Enter your feedback..."></textarea>
+            <button id="submitFeedback2" class="hidden">Submit</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.emailjs.com/dist/email.min.js"></script>
+    <script>
+        // Initialize EmailJS
+        emailjs.init("snoopy20");  // Replace with your actual EmailJS user_id
+
+        const background = document.getElementById('background');
+        const video = document.getElementById('video');
+        const overlay1 = document.getElementById('overlay1');
+        const text1 = document.getElementById('text1');
+        const text2 = document.getElementById('text2');
+        const options1 = document.getElementById('options1');
+        const text3 = document.getElementById('text3');
+        const options2 = document.getElementById('options2');
+        const feedback1 = document.getElementById('feedback1');
+        const feedback2 = document.getElementById('feedback2');
+        const option1 = document.getElementById('option1');
+        const option2 = document.getElementById('option2');
+        const submitFeedback1 = document.getElementById('submitFeedback1');
+        const submitFeedback2 = document.getElementById('submitFeedback2');
+        const option3 = document.getElementById('option3');
+        const option4 = document.getElementById('option4');
+        const option5 = document.getElementById('option5');
+
+        let selectedOption = null;
+
+        let fadeTimer;
+
+        // Step 1: Transition background
+        setTimeout(() => background.classList.add('fade-to-black'), 1000);
+        setTimeout(() => background.classList.add('fade-to-image'), 3000);
+
+        // Step 2: Play video
+        setTimeout(() => {
+            video.classList.add('show');
+            video.play();
+        }, 3000);
+
+        // Step 3: Show overlay1 after video finishes
+        video.onended = () => {
+            overlay1.classList.add('show');
+            fadeTimer = setTimeout(() => {
+                text2.classList.remove('hidden');
+                options1.classList.remove('hidden');
+            }, 6000);
+        };
+
+        // Step 4: Handle options
+        option1.addEventListener('click', () => {
+            document.querySelectorAll('#options1 button').forEach(button => button.classList.remove('selected'));
+            option1.classList.add('selected');
+            text3.classList.remove('hidden');
+            options2.classList.remove('hidden');
+            feedback1.classList.add('hidden');
+            feedback2.classList.remove('hidden');
+            const textarea = document.getElementById('textarea2');
+            textarea.classList.add('visible');
+            submitFeedback2.classList.remove('hidden');
+        });
+
+        option2.addEventListener('click', () => {
+            document.querySelectorAll('#options1 button').forEach(button => button.classList.remove('selected'));
+            option2.classList.add('selected');
+            text3.classList.add('hidden');
+            options2.classList.add('hidden');
+            feedback2.classList.add('hidden');
+            feedback1.classList.remove('hidden');
+            const textarea = document.getElementById('textarea1');
+            textarea.classList.add('visible');
+            submitFeedback1.classList.remove('hidden');
+        });
+
+        // Handle selection of "Yes", "No", or "Some other time"
+        option3.addEventListener('click', () => {
+            document.querySelectorAll('#options2 button').forEach(button => button.classList.remove('selected'));
+            option3.classList.add('selected');
+            selectedOption = 'Yes'; // Store selected option
+        });
+
+        option4.addEventListener('click', () => {
+            document.querySelectorAll('#options2 button').forEach(button => button.classList.remove('selected'));
+            option4.classList.add('selected');
+            selectedOption = 'No'; // Store selected option
+        });
+
+        option5.addEventListener('click', () => {
+            document.querySelectorAll('#options2 button').forEach(button => button.classList.remove('selected'));
+            option5.classList.add('selected');
+            selectedOption = 'Some other time'; // Store selected option
+        });
+
+        // Submit feedback for "Yes"
+        submitFeedback2.addEventListener('click', () => {
+            const feedbackText = document.getElementById('textarea2').value;
+            sendFeedbackToEmail(selectedOption, feedbackText);  // Send the feedback to your email
+        });
+
+        // Submit feedback for "No"
+        submitFeedback1.addEventListener('click', () => {
+            const feedbackText = document.getElementById('textarea1').value;
+            sendFeedbackToEmail(selectedOption, feedbackText);  // Send the feedback to your email
+        });
+
+        // Function to send feedback to your email via EmailJS
+        function sendFeedbackToEmail(option, feedbackText) {
+            const feedbackDetails = {
+                option: option,
+                feedback: feedbackText
+            };
+
+            // Send feedback using EmailJS
+            emailjs.send("service_jl9ywxo", "template_g7bnhac", feedbackDetails)
+                .then(response => {
+                    alert('Feedback sent successfully!');
+                    console.log('Success:', response);
+                }, error => {
+                    alert('Failed to send feedback. Please try again later.');
+                    console.error('Error:', error);
+                });
+        }
+    </script>
+</body>
+</html>
